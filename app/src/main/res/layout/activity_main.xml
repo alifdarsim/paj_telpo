@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".MainActivity">
+
+    <include
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/main_footer"
+        layout="@layout/logger_panel" />
+
+    <include
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/main_footer"
+        layout="@layout/main_panel" />
+
+    <RelativeLayout
+        android:id="@+id/main_footer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/md_blue_700">
+
+        <TextView
+            android:id="@+id/text_bus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="24dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="24dp"
+            android:paddingBottom="4dp"
+            android:text="JTU8200"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <ToggleButton
+            android:id="@+id/panel_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/text_bus"
+            android:backgroundTint="@color/md_green_A400"
+            android:minHeight="10dp"
+            android:textColor="@color/white"
+            android:textOff="LOGGER OFF"
+            android:textOn="LOGGER ON" />
+
+        <TextView
+            android:id="@+id/day_of_week"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toStartOf="@+id/text_clock"
+            android:gravity="end"
+            android:paddingStart="14dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:text="JUMAAT | "
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextClock
+            android:id="@+id/text_clock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:format12Hour="dd/MM/yyyy | hh:mm:ss aaa"
+            android:paddingTop="4dp"
+            android:paddingEnd="30dp"
+            android:paddingBottom="4dp"
+            android:text="08/08/2022 | 10:10:00"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </RelativeLayout>
+
+</RelativeLayout>
