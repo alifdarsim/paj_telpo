@@ -1,14 +1,12 @@
 package com.paj.pajbustelpo;
 
-import android.util.Log;
-
-public class UserInfo {
+public class User {
 
     public String uuid;
     public String username;
     public String mykad_uid;
     public String qrcode_uid;
-    public String active;
+    public String blacklist;
     public String expired;
 
     public String getUuid() {
@@ -43,12 +41,12 @@ public class UserInfo {
         this.qrcode_uid = qrcode_uid;
     }
 
-    public String getActive() {
-        return active;
+    public String isBlacklist() {
+        return blacklist;
     }
 
-    public void setActive(String active) {
-        this.active = active;
+    public void setBlacklist(String blacklist) {
+        this.blacklist = blacklist;
     }
 
     public String getExpired() {

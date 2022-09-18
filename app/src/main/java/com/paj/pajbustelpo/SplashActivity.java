@@ -18,7 +18,6 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         //work on above oreo only
         hideSystemUI();
-        getWindow().getAttributes().layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
         setContentView(R.layout.activity_splash);
 
         TextView textView = findViewById(R.id.footer_paj);

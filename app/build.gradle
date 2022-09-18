@@ -7,8 +7,9 @@ android {
 
     defaultConfig {
         applicationId "com.paj.pajbustelpo"
-        minSdk 29
-        targetSdk 29
+        minSdk 24
+        //noinspection ExpiredTargetSdkVersion
+        targetSdk 24
         versionCode 1
         versionName "1.0"
 
@@ -39,4 +40,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:20.0.0'
     implementation 'com.github.requery:sqlite-android:3.39.2'
     implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation files('libs/telpo_api.jar')
+    implementation 'com.github.yuriy-budiyev:code-scanner:2.3.2'
 }

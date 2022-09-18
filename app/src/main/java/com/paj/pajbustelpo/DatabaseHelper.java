@@ -11,6 +11,11 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.text.ParseException;
+import java.util.Calendar;
+import java.util.Date;
+
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME = "pajtelpo.db";
@@ -25,7 +30,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_8 = "status";
 
     public DatabaseHelper(Context context) {
-        super(context, DATABASE_NAME, null, 16);
+        super(context, DATABASE_NAME, null, 22);
     }
 
     public Cursor getAllData(){
@@ -35,22 +40,40 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return res;
     }
 
-    public UserInfo checkUserInfo(String mykad_uid){
+    public User checkUserMyKad(String mykad_uid){
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor res = db.rawQuery("SELECT * FROM user_info_table WHERE mykad_uid = '" +mykad_uid+ "' LIMIT 1", null);
-        UserInfo userInfo = new UserInfo();
+        User user = new User();
         //if no uuid directly return empty class
-        if(res.getCount() == 0) return userInfo;
+        if(res.getCount() == 0) return user;
         while (res.moveToNext()){
-            userInfo.setUuid(res.getString(1));
-            userInfo.setUsername(res.getString(2));
-            userInfo.setMykad_uid(res.getString(3));
-            userInfo.setQrcode_uid(res.getString(4));
-            userInfo.setActive(res.getString(5));
-            userInfo.setExpired(res.getString(6));
+            user.setUuid(res.getString(1));
+            user.setUsername(res.getString(2));
+            user.setMykad_uid(res.getString(3));
+            user.setQrcode_uid(res.getString(4));
+            user.setBlacklist(res.getString(5));
+            user.setExpired(res.getString(6));
         }
 //        db.close();
-        return userInfo;
+        return user;
+    }
+
+    public User checkUserQrCode(String qrCode){
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res = db.rawQuery("SELECT * FROM user_info_table WHERE qrcode_uid = '" +qrCode+ "' LIMIT 1", null);
+        User user = new User();
+        //if no uuid directly return empty class
+        if(res.getCount() == 0) return user;
+        while (res.moveToNext()){
+            user.setUuid(res.getString(1));
+            user.setUsername(res.getString(2));
+            user.setMykad_uid(res.getString(3));
+            user.setQrcode_uid(res.getString(4));
+            user.setBlacklist(res.getString(5));
+            user.setExpired(res.getString(6));
+        }
+//        db.close();
+        return user;
     }
 
     public JSONObject getUnsendLocation() {
@@ -62,12 +85,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             while (res.moveToNext()){
                 JSONObject json = new JSONObject();
                 json.put("id", res.getString(0));
-                json.put("latitude", res.getString(1));
-                json.put("longitude", res.getString(2));
-                json.put("speed", res.getString(3));
-                json.put("bearing", res.getString(4));
-                json.put("datetime", res.getString(5));
-                json.put("accuracy", res.getString(6));
+                json.put("lat", res.getString(1));
+                json.put("lng", res.getString(2));
+                json.put("spd", res.getString(3));
+                json.put("bea", res.getString(4));
+                json.put("time", res.getString(5));
+                json.put("acc", res.getString(6));
                 jsonArray.put(json);
             }
             JSONObject jsonObject = new JSONObject();
@@ -85,17 +108,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public JSONObject getUnsendRidership(){
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor res = db.rawQuery("SELECT * FROM ridership_table WHERE status = 0 ORDER BY id ASC LIMIT 50", null);
+        Cursor res = db.rawQuery("SELECT * FROM ridership_table WHERE status = 0 ORDER BY id ASC LIMIT 15", null);
         try{
             JSONArray jsonArray = new JSONArray();
             if(res.getCount() == 0) return new JSONObject();
             while (res.moveToNext()){
                 JSONObject json = new JSONObject();
+                json.put("id", res.getString(0));
                 json.put("uuid", res.getString(1));
-                json.put("deviceTime", res.getString(2));
-                json.put("tap_type", res.getString(3));
-                json.put("latitude", res.getString(4));
-                json.put("longitude", res.getString(5));
+                json.put("time", res.getString(2));
+                json.put("enter", res.getString(3));
+                json.put("lat", res.getString(4));
+                json.put("lng", res.getString(5));
                 jsonArray.put(json);
             }
             JSONObject jsonObject = new JSONObject();
@@ -112,13 +136,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     }
 
-    public boolean updateLocationStatus(String id){
+    public boolean updateLocationId(String id){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put("status", 1);
         db.update(TABLE_NAME, contentValues, " ID = ?", new String[] {id});
 //        db.close();
         return true;
+    }
+
+    public boolean updateRidershipId(String id){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("status", 1);
+        db.update("ridership_table", contentValues, " ID = ?", new String[] {id});
+//        db.close();
+        return true;
+    }
+
+    public double getSqliteSize(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        return new File(db.getPath()).length();
     }
 
     @SuppressLint("DefaultLocale")
@@ -138,15 +176,59 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     @SuppressLint("DefaultLocale")
-    public boolean insertRidershipData(String uuid, String deviceTime, String tap_type, double latitude, double longitude){
+    public boolean isRidershipOut(String uuid, double currentLat, double currentLng) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res = db.rawQuery("SELECT * FROM ridership_table WHERE uuid = '"+uuid+"' ORDER BY id DESC LIMIT 1", null);
+        if(res.getCount() == 0) return false;
+        String lastTapTime = null;
+        double lastLat = 0, lastLng = 0;
+        while (res.moveToNext()){
+            lastTapTime = res.getString(2);
+            lastLat = Double.parseDouble(res.getString(4));
+            lastLng = Double.parseDouble(res.getString(5));
+        }
+
+        if (Helper.SecondAgo(lastTapTime) > 10) {
+            Log.e("11","Tapping detect as IN");
+            return false;
+        }
+
+        //get displacement in meter from previous location
+        double displacement = Helper.getDisplacement(currentLat, currentLng, lastLat, lastLng);
+        if (displacement > -1) {
+            Log.e("22","Tapping detect as OUT");
+            return true;
+        }
+        return false;
+    }
+
+    @SuppressLint("DefaultLocale")
+    public boolean insertRidershipData(String uuid, String deviceTime, int tap_type, int tapIn ,double latitude, double longitude){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put("uuid", uuid);
         contentValues.put("deviceTime", deviceTime);
         contentValues.put("tap_type", tap_type);
+        contentValues.put("tap_in", tapIn);
         contentValues.put("latitude", latitude);
         contentValues.put("longitude", longitude);
+        contentValues.put("status", 0);
         long result = db.insert("ridership_table", null, contentValues);
+//        db.close();
+        return result != -1;
+    }
+
+    @SuppressLint("DefaultLocale")
+    public boolean insertUserData(String uuid, String username, String mykad_uid, String qrcode_uid, int active, String expired){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("uuid", uuid);
+        contentValues.put("username", username);
+        contentValues.put("mykad_uid", mykad_uid);
+        contentValues.put("qrcode_uid", qrcode_uid);
+        contentValues.put("blacklist", active);
+        contentValues.put("expired", expired);
+        long result = db.insert("user_info_table", null, contentValues);
 //        db.close();
         return result != -1;
     }
@@ -172,6 +254,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "uuid TEXT, " +
                 "devicetime TEXT, " +
                 "tap_type TEXT, " +
+                "tap_in TEXT, " +
                 "latitude TEXT, " +
                 "longitude TEXT, " +
                 "status INTERGER)";
@@ -184,18 +267,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "username TEXT, " +
                 "mykad_uid TEXT, " +
                 "qrcode_uid TEXT, " +
-                "active INTERGER, " +
+                "blacklist INTERGER, " +
                 "expired DATETIME)";
         db.execSQL(qry3);
 
-        ContentValues contentValues = new ContentValues();
-        contentValues.put("uuid", "c5cdb661-7de4-4028-8f3e-22c20957b8ff");
-        contentValues.put("username", "JOHN DOE BIN ABU DEMO");
-        contentValues.put("mykad_uid", "0418C582F1");
-        contentValues.put("qrcode_uid", (byte[]) null);
-        contentValues.put("active", 1);
-        contentValues.put("expired", "2025-08-01 00:00:00");
-        db.insert("user_info_table", null, contentValues);
 //        db.close();
 
     }

@@ -1,7 +1,7 @@
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main_panel"
     android:background="@color/white">
 
@@ -12,10 +12,55 @@
         android:layout_marginStart="12dp"
         android:src="@drawable/paj_logo" />
 
-    <TextView
+    <Button
+        android:id="@+id/test_enter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Please scan your card?"
-        android:textColor="@color/black"
-        android:layout_centerInParent="true"/>
+        android:layout_alignParentEnd="true"
+        android:backgroundTint="@color/md_green_A400"
+        android:text="SIMULATE TAP"
+        android:textColor="@color/white" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_scan_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="100dp"
+        android:layout_marginEnd="100dp"
+        android:layout_marginBottom="100dp"
+        card_view:cardCornerRadius="50dp"
+        card_view:cardBackgroundColor="@color/md_blue_500">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/text_scan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:text="SELAMAT DATANG"
+                android:textColor="@color/white"
+                android:textSize="48sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/text_scan_footer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:text="MUHAMMAD NOORALIF BIN DARSIM\n20/20/2022 | 11:23:21"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+
+    </androidx.cardview.widget.CardView>
+
+
 </RelativeLayout>

@@ -8,16 +8,26 @@
     tools:context=".MainActivity">
 
     <include
+        layout="@layout/logger_panel"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/main_footer"
-        layout="@layout/logger_panel" />
+        android:layout_marginBottom="1dp" />
+
 
     <include
+        layout="@layout/main_panel"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/main_footer"
-        layout="@layout/main_panel" />
+        android:layout_marginBottom="0dp" />
+
+    <com.budiyev.android.codescanner.CodeScannerView
+        android:id="@+id/scanner_view"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_above="@id/main_footer"
+        android:layout_alignParentEnd="true"/>
 
     <RelativeLayout
         android:id="@+id/main_footer"
@@ -34,9 +44,9 @@
             android:paddingTop="4dp"
             android:paddingEnd="24dp"
             android:paddingBottom="4dp"
-            android:text="JTU8200"
+            android:text="ABC1234"
             android:textColor="@color/white"
-            android:textSize="20sp"
+            android:textSize="28sp"
             android:textStyle="bold" />
 
         <ToggleButton
@@ -45,7 +55,6 @@
             android:layout_height="wrap_content"
             android:layout_toEndOf="@id/text_bus"
             android:backgroundTint="@color/md_green_A400"
-            android:minHeight="10dp"
             android:textColor="@color/white"
             android:textOff="LOGGER OFF"
             android:textOn="LOGGER ON" />
@@ -61,7 +70,7 @@
             android:paddingBottom="4dp"
             android:text="JUMAAT | "
             android:textColor="@color/white"
-            android:textSize="20sp"
+            android:textSize="28sp"
             android:textStyle="bold" />
 
         <TextClock
@@ -75,7 +84,7 @@
             android:paddingBottom="4dp"
             android:text="08/08/2022 | 10:10:00"
             android:textColor="@color/white"
-            android:textSize="20sp"
+            android:textSize="28sp"
             android:textStyle="bold" />
     </RelativeLayout>
 

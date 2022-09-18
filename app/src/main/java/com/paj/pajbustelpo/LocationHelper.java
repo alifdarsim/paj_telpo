@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -25,6 +26,7 @@ public class LocationHelper {
     DatabaseHelper db;
     private double currentLat, currentLng;
     private double cumulativeDisplacement = 0;
+    private int cumulativeTime = 0;
 
     public LocationHelper(MainActivity context, DatabaseHelper db) {
         this.mainActivity = context;
@@ -43,6 +45,10 @@ public class LocationHelper {
             public void onLocationResult(@NonNull LocationResult locationResult) {
                 for (Location location : locationResult.getLocations()) {
                     if (location != null) {
+
+                        //do nothing during startup (5 second) to initialize the GPS
+                        if (delayingLocationData()) return;
+
                         //get location data from satellite
                         double latitude = location.getLatitude();
                         double longitude = location.getLongitude();
@@ -51,34 +57,30 @@ public class LocationHelper {
                         long time = location.getTime();
                         double accuracy = location.getAccuracy();
 
-                        //get distance from previous location
-                        Location location1 = new Location("locationA");
-                        location1.setLatitude(currentLat);
-                        location1.setLongitude(currentLng);
-                        Location location2 = new Location("locationB");
-                        location2.setLatitude(latitude);
-                        location2.setLongitude(longitude);
-                        double displacement = location1.distanceTo(location2);
+                        //get displacement from previous location
+                        double displacement = Helper.getDisplacement(currentLat, currentLng, latitude, longitude);
                         currentLat = latitude;
                         currentLng = longitude;
 
                         //check if data is 1st location data, then we can simply ignore this data
                         if (checkIfGpsNotInit(displacement)) return;
 
-                        //correcting displacement data when the device not actually moving
-                        displacement = compensateNoSignificantDistance(displacement);
-
-                        //collect the cumulative distance only when speed is more than 1.9ms
-                        if (speed > 1) cumulativeDisplacement = cumulativeDisplacement + displacement;
+                        //collect the cumulative distance only when displacement is more than 1m
+                        if (displacement > 1) cumulativeDisplacement = cumulativeDisplacement + displacement;
 
                         //log the location data
-                        Log.d("Location data: ", latitude + "," + longitude + "," + speed + "," + bearing + "," + time + "," + accuracy+ "," + displacement+ "," + cumulativeDisplacement);
                         logLocationData(latitude, longitude, speed, bearing, time, accuracy, displacement, cumulativeDisplacement);
 
+//                        if (cumulativeDisplacement > 40.0){
+//                            mainActivity.logger.writeToLogger("Insert location into sqlite | Lat: " + latitude + ", Lng: " + longitude, "green");
+//                            insertIntoDataBase(latitude, longitude, speed, bearing, time, accuracy);
+//                        }
 
-                        if (cumulativeDisplacement > 40.0){
-                            mainActivity.logger.writeToLogger("Insert latest location into database | Lat: " + latitude + ", Lng: " + longitude, "green");
+                        cumulativeTime++;
+                        if (cumulativeTime > 4){
+                            mainActivity.logger.writeToLogger("Insert location into sqlite | Lat: " + latitude + ", Lng: " + longitude, "green");
                             insertIntoDataBase(latitude, longitude, speed, bearing, time, accuracy);
+                            cumulativeTime = 0;
                         }
 
                         //callback data to mainActivity if needed to do something
@@ -105,7 +107,6 @@ public class LocationHelper {
         String str_displacement = String.format("%.1f", displacement);
         String str_cum_displacement = String.format("%.1f", cumulativeDisplacement);
         String strAppend = "Lat: " + str_latitude + " | Lng: " + str_longitude + " | Spd: " + str_speed + " | Deg: " + str_bearing + " | Acc: " + str_accuracy + " | Disp: " + str_displacement+ " | TotalDisp: " + str_cum_displacement;
-
         mainActivity.logger.writeToLogger(strAppend, "gray");
     }
 
@@ -129,6 +130,13 @@ public class LocationHelper {
         void locationUpdate(double latitude, double longitude, double speed, double bearing, long time, double accuracy, double distance);
     }
 
+    private int gpsDelay = 0;
+    private boolean delayingLocationData(){
+        //during startup of GPS, there is significant location change, so we can delay this reduce data error during GPS startup
+        gpsDelay++;
+        return gpsDelay < 5;
+    }
+
     private boolean checkIfGpsNotInit(double displacement){
         //assuming that displacement of each data cannot be 1km, then we can ignore this interval data
         if (displacement > 1000.0) {
@@ -136,20 +144,6 @@ public class LocationHelper {
             return true;
         }
         else return false;
-    }
-
-    private double compensateNoSignificantDistance(double displacement){
-        //since data is deviating almost all the time, we need to limit the data to stop collect when there is small deviation
-        //if displacement between data is less than a meter, we can assume there is not displacement change at all
-        if (displacement < 2) displacement = 0.0;
-        return displacement;
-    }
-
-    private double compensateNoSignificantSpeed(double speed){
-        //since data is deviating almost all the time, we need to limit the data to stop collect when there is small deviation
-        //if displacement between data is less than a meter, we can assume there is not displacement change at all
-        if (speed < 2) speed = 0.0;
-        return speed;
     }
 
 }

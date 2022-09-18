@@ -4,6 +4,15 @@ package com.paj.pajbustelpo;
 //no need to create new thread, just use callback at the end, cause we wont run other things while startup script is running
 
 import java.io.IOException;
+import java.security.cert.CertificateException;
+import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -18,50 +27,52 @@ import okio.BufferedSink;
 
 public class HttpUtil {
 
-    // only one client
-    private final OkHttpClient httpClient = new OkHttpClient();
+    //overriding the usage certificate
+    //this is not safe, but for telpo should be ok to use since this apps is not open
+    public static OkHttpClient getUnsafeOkHttpClient() {
+        try {
+            // Create a trust manager that does not validate certificate chains
+            final TrustManager[] trustAllCerts = new TrustManager[] {
+                    new X509TrustManager() {
+                        @Override
+                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                        }
 
-    public static void main(String[] args) throws IOException {
-        HttpUtil obj = new HttpUtil();
-        obj.sendGET();
-    }
+                        @Override
+                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                        }
 
-    public static void get() throws IOException {
-        HttpUtil obj = new HttpUtil();
-        obj.sendGET();
-    }
-
-    private void sendGET() throws IOException {
-
-        Request request = new Request.Builder()
-                .url("https://httpbin.org/get")
-                .addHeader("custom-key", "mkyong")  // add request headers
-                .addHeader("User-Agent", "OkHttp Bot")
-                .build();
-
-        httpClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                e.printStackTrace();
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                try (ResponseBody responseBody = response.body()) {
-                    if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-
-                    // Get response headers
-                    Headers responseHeaders = response.headers();
-                    for (int i = 0, size = responseHeaders.size(); i < size; i++) {
-                        System.out.println(responseHeaders.name(i) + ": " + responseHeaders.value(i));
+                        @Override
+                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                            return new java.security.cert.X509Certificate[]{};
+                        }
                     }
+            };
 
-                    // Get response body
-                    System.out.println(responseBody.string());
+            // Install the all-trusting trust manager
+            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+            // Create an ssl socket factory with our all-trusting manager
+            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+            OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            builder.sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0]);
+            builder.hostnameVerifier(new HostnameVerifier() {
+                @Override
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
                 }
-            }
-        });
+            });
 
+            OkHttpClient okHttpClient = builder
+                    .connectTimeout(15, TimeUnit.SECONDS)
+                    .writeTimeout(15, TimeUnit.SECONDS)
+                    .readTimeout(15, TimeUnit.SECONDS)
+                    .build();
+            return okHttpClient;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
