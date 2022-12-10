@@ -3,8 +3,8 @@ package com.paj.pajbustelpo.TelpoHelper;
 public class Telpo {
 
     public static class Tapping{
-        public static final int IN = 0;
-        public static final int OUT = 1;
+        public static final int IN = 1;
+        public static final int OUT = 0;
     }
 
     public static class TapType{

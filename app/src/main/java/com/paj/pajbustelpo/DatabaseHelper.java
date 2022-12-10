@@ -13,6 +13,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -159,6 +160,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return new File(db.getPath()).length();
     }
 
+    public double getSqliteTotalRow(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res = db.rawQuery("SELECT COUNT(*) AS totalRow FROM location_table\n" +
+                "UNION ALL \n" +
+                "SELECT COUNT(*) AS MyCount FROM ridership_table\n" +
+                "UNION ALL \n" +
+                "SELECT COUNT(*) AS MyCount FROM user_info_table", null);
+        int totalRow = 0;
+        while (res.moveToNext()){
+            int rowNum = Integer.parseInt(res.getString(0));
+            totalRow = totalRow + rowNum;
+        }
+        return totalRow;
+    }
+
     @SuppressLint("DefaultLocale")
     public boolean insertLocationData(double latitude, double longitude, double speed, double bearing, String datetime, double accuracy){
         SQLiteDatabase db = this.getWritableDatabase();
@@ -176,30 +192,66 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     @SuppressLint("DefaultLocale")
+    public boolean isUserTapSecondAgo(String uuid) {
+        int secondsAgo = 5;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res = db.rawQuery("SELECT * FROM ridership_table WHERE uuid = '"+uuid+"' ORDER BY id DESC LIMIT 1", null);
+        if(res.getCount() == 0) return false;
+        String lastTapTime = null;
+        while (res.moveToNext()){
+            lastTapTime = res.getString(2);
+        }
+        Log.e("44",lastTapTime);
+        Log.e("44",Helper.SecondAgo(lastTapTime)+"");
+        if (Helper.SecondAgo(lastTapTime) < secondsAgo) {
+            Log.e("11","User just tap few seconds ago");
+            return true;
+        }
+
+        return false;
+    }
+
+    @SuppressLint("DefaultLocale")
     public boolean isRidershipOut(String uuid, double currentLat, double currentLng) {
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor res = db.rawQuery("SELECT * FROM ridership_table WHERE uuid = '"+uuid+"' ORDER BY id DESC LIMIT 1", null);
         if(res.getCount() == 0) return false;
         String lastTapTime = null;
         double lastLat = 0, lastLng = 0;
+        int lastTapIn = 0;
         while (res.moveToNext()){
+            Log.e("tapin", res.getString(4));
+            Log.e("lat", res.getString(5));
+            Log.e("lng", res.getString(6));
+            lastTapIn = Integer.parseInt(res.getString(4));
             lastTapTime = res.getString(2);
             lastLat = Double.parseDouble(res.getString(4));
             lastLng = Double.parseDouble(res.getString(5));
         }
 
-        if (Helper.SecondAgo(lastTapTime) > 10) {
+
+
+        if (lastTapIn == 1){
+            Log.e("22","Tapping detect as OUT");
+            return true;
+        }
+        else{
             Log.e("11","Tapping detect as IN");
             return false;
         }
 
-        //get displacement in meter from previous location
-        double displacement = Helper.getDisplacement(currentLat, currentLng, lastLat, lastLng);
-        if (displacement > -1) {
-            Log.e("22","Tapping detect as OUT");
-            return true;
-        }
-        return false;
+//        if (Helper.SecondAgo(lastTapTime) > 10) {
+//            Log.e("11","Tapping detect as IN");
+//            return false;
+//        }
+//
+//        //get displacement in meter from previous location
+//        double displacement = Helper.getDisplacement(currentLat, currentLng, lastLat, lastLng);
+//        if (displacement > -1) {
+//            Log.e("22","Tapping detect as OUT");
+//            return true;
+//        }
+//        return false;
     }
 
     @SuppressLint("DefaultLocale")

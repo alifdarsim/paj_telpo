@@ -51,12 +51,13 @@ public class DeviceInfoThread implements Runnable {
             public void run() {
                 try {
                     String sqliteSize = getSqliteSize();
+                    int freeSpaceDisk = DiskUtils.freeSpace(true) + DiskUtils.freeSpace(false);
                     String mem  = DeviceUtils.getDeviceInfo(mainActivity, DeviceUtils.DEVICE_USED_MEMORY);
                     String mem2  = DeviceUtils.getDeviceInfo(mainActivity, DeviceUtils.DEVICE_TOTAL_MEMORY);
                     String cpu  = DeviceUtils.getDeviceInfo(mainActivity, DeviceUtils.DEVICE_TOTAL_CPU_USAGE);
                     if (Objects.equals(cpu, "")) cpu = "0";
 
-                    Log.e("Device Info", mem + "," + mem2 + "," + cpu + "," + sqliteSize);
+                    Log.e("Device Info", mem + "," + freeSpaceDisk + "," + cpu + "," + sqliteSize);
                     String finalCpu = cpu;
                     mainActivity.runOnUiThread(()-> {
 //                        Toast.makeText(mainActivity, mem + "," + mem2 + "," + finalCpu + "," + sqliteSize, Toast.LENGTH_SHORT).show();
@@ -65,7 +66,7 @@ public class DeviceInfoThread implements Runnable {
                             JSONObject json = new JSONObject();
                             json.put("cpu", finalCpu);
                             json.put("memory",mem);
-                            json.put("disk", "0");
+                            json.put("disk", freeSpaceDisk);
                             json.put("sqlite", sqliteSize);
 
                             JSONObject jsonObject = new JSONObject();
@@ -90,8 +91,7 @@ public class DeviceInfoThread implements Runnable {
     }
 
     private String getSqliteSize(){
-        double sqliteSize = db.getSqliteSize();
-//        sqliteSize = sqliteSize * 0.001;
+        double sqliteSize = db.getSqliteTotalRow();
         return sqliteSize+"";
     }
 

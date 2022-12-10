@@ -31,7 +31,7 @@ public class Helper {
     }
 
     public static Date stringToDate(String str) {
-        Log.e("date", str.toString());
+        Log.e("date11", str.toString());
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
         try {
             return format.parse(str);

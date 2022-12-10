@@ -166,9 +166,7 @@ public class MainActivity extends AppCompatActivity {
                             String str_uid = StringUtil.toHexString(uid);
                             str_uid = str_uid.trim();
                             if (str_uid.length()>12) str_uid = str_uid.substring(0, 12);
-//                            Toast.makeText(MainActivity.this, str_uid,
-//                                    Toast.LENGTH_LONG).show();
-
+                            logger.writeToLogger("\uD83D\uDCB3 A card is tapped ID: " +str_uid, "yellow");
                             User user = db.checkUserMyKad(str_uid);
                             checkUserInfo(user, Telpo.TapType.CARD);
 
@@ -272,6 +270,10 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressLint({"SetTextI18n", "ResourceAsColor"})
     public void checkUserInfo(User user, int tap_type){
+        if (db.isUserTapSecondAgo(user.getUuid())){
+            //if user just tap few second ago, then do nothing
+            return;
+        }
         if (!user.isUuidExist()) {
             logger.writeToLogger("Card uid not exist", "red");
             showScanResult(false, "Tiada data didalam sistem", "");
