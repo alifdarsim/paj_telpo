@@ -1,4 +1,4 @@
-package com.paj.pajbustelpo;
+package com.paj.pajbustelpo.utils;
 
 import android.Manifest;
 import android.annotation.SuppressLint;

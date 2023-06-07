@@ -1,35 +1,18 @@
 package com.paj.pajbustelpo;
 
-import static com.paj.pajbustelpo.HttpUtil.getUnsafeOkHttpClient;
 
-import android.app.ActivityManager;
-import android.content.Context;
 import android.util.Log;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
+import com.paj.pajbustelpo.activities.MainActivity;
+import com.paj.pajbustelpo.utils.DeviceUtils;
+import com.paj.pajbustelpo.utils.LoggerHelper;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 public class DeviceInfoThread implements Runnable {
 
@@ -96,42 +79,42 @@ public class DeviceInfoThread implements Runnable {
     }
 
     public void sendDeviceInfoData(String jsonData){
-        logger.writeToLogger("\uD83D\uDFE1 API Send Device Info Data...", "yellow");
-        OkHttpClient okHttpClient = getUnsafeOkHttpClient();
-
-        RequestBody body = RequestBody.create(jsonData, MediaType.parse("application/json"));
-        Request request = new Request.Builder()
-                .url("https://dataapi.paj.com.my/api/v1/telpo/deviceinfo")
-                .addHeader("api-key", "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a")
-                .post(body)
-                .build();
-
-        Callback callback = new Callback() {
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                String responseString = response.body().string();
-                Log.e("DeviceInfo Response", responseString);
-                try{
-                    JSONObject obj = new JSONObject(responseString);
-                    String status = obj.getString("status");
-                    if (status.equals("success")){
-                        logger.writeToLogger("\uD83D\uDFE2 API Device Info: SUCCESS insert to server", "green");
-                    }
-                    else{
-                        logger.writeToLogger("\uD83D\uDD34 API Device Info: FAILED insert to server", "green");
-                    }
-                }catch (Exception e){
-                    e.printStackTrace();
-                    logger.writeToLogger("\uD83D\uDD34 API Device Info: Response Error", "red");
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                logger.writeToLogger("API Device Info: FAILED insert to server", "red");
-            }
-        };
-        okHttpClient.newCall(request).enqueue(callback);
+//        logger.writeToLogger("\uD83D\uDFE1 API Send Device Info Data...", "yellow");
+//        OkHttpClient okHttpClient = getUnsafeOkHttpClient();
+//
+//        RequestBody body = RequestBody.create(jsonData, MediaType.parse("application/json"));
+//        Request request = new Request.Builder()
+//                .url("https://dataapi.paj.com.my/api/v1/telpo/deviceinfo")
+//                .addHeader("api-key", "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a")
+//                .post(body)
+//                .build();
+//
+//        Callback callback = new Callback() {
+//            @Override
+//            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+//                String responseString = response.body().string();
+//                Log.e("DeviceInfo Response", responseString);
+//                try{
+//                    JSONObject obj = new JSONObject(responseString);
+//                    String status = obj.getString("status");
+//                    if (status.equals("success")){
+//                        logger.writeToLogger("\uD83D\uDFE2 API Device Info: SUCCESS insert to server", "green");
+//                    }
+//                    else{
+//                        logger.writeToLogger("\uD83D\uDD34 API Device Info: FAILED insert to server", "green");
+//                    }
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                    logger.writeToLogger("\uD83D\uDD34 API Device Info: Response Error", "red");
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+//                logger.writeToLogger("API Device Info: FAILED insert to server", "red");
+//            }
+//        };
+//        okHttpClient.newCall(request).enqueue(callback);
     }
 
 }

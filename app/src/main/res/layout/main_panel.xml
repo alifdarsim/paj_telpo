@@ -2,24 +2,37 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/tools"
     android:id="@+id/main_panel"
-    android:background="@color/white">
+    android:background="@color/white"
+    app:ignore="NamespaceTypo">
 
     <ImageView
         android:id="@+id/paj_logo"
-        android:layout_width="100dp"
-        android:layout_height="70dp"
+        android:layout_width="150dp"
+        android:layout_height="100dp"
         android:layout_marginStart="12dp"
         android:src="@drawable/paj_logo" />
 
-    <Button
-        android:id="@+id/test_enter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:backgroundTint="@color/md_green_A400"
-        android:text="SIMULATE TAP"
-        android:textColor="@color/white" />
+<!--    <ImageView-->
+<!--        android:layout_width="100dp"-->
+<!--        android:layout_height="70dp"-->
+<!--        android:layout_marginTop="12dp"-->
+<!--        android:layout_centerHorizontal="true"-->
+<!--        android:src="@drawable/arrow_up" />-->
+
+    <me.ibrahimsn.lib.CirclesLoadingView
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        app:circleRadius="5dp"
+        app:circleMargin="50dp"
+        app:animDistance="20dp"
+        app:animDuration="500"
+        app:animDelay="150"
+        app:animInterpolator="accelerateDecelerate"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="16dp"/>
 
     <androidx.cardview.widget.CardView
         android:id="@+id/card_scan_background"
@@ -28,7 +41,7 @@
         android:layout_marginStart="100dp"
         android:layout_marginTop="100dp"
         android:layout_marginEnd="100dp"
-        android:layout_marginBottom="100dp"
+        android:layout_marginBottom="110dp"
         card_view:cardCornerRadius="50dp"
         card_view:cardBackgroundColor="@color/md_blue_500">
 
@@ -45,7 +58,7 @@
                 android:gravity="center_horizontal"
                 android:text="SELAMAT DATANG"
                 android:textColor="@color/white"
-                android:textSize="48sp"
+                android:textSize="60sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -53,9 +66,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal"
-                android:text="MUHAMMAD NOORALIF BIN DARSIM\n20/20/2022 | 11:23:21"
+                android:text="20/20/2022 | 11:23:21"
                 android:textColor="@color/white"
-                android:textSize="18sp"
+                android:textSize="32sp"
                 android:textStyle="bold" />
         </LinearLayout>
 

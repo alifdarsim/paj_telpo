@@ -1,18 +1,12 @@
-package com.paj.pajbustelpo;
+package com.paj.pajbustelpo.utils;
 
 import android.annotation.SuppressLint;
 import android.text.Html;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.util.Log;
-import android.view.View;
-import android.widget.ScrollView;
-import android.widget.TextView;
 
-import androidx.core.text.HtmlCompat;
+import com.paj.pajbustelpo.Helper;
+import com.paj.pajbustelpo.activities.MainActivity;
 
 import java.util.Objects;
-import java.util.function.LongFunction;
 
 public class LoggerHelper {
 
@@ -23,7 +17,7 @@ public class LoggerHelper {
     }
 
     @SuppressLint("SetTextI18n")
-    public void writeToLogger(String textToAppend, String color){
+    public void writeToLogger(String textToAppend, String colorString){
 
         if (!mainActivity.isLogging) {
             textSpan = "";
@@ -36,14 +30,13 @@ public class LoggerHelper {
         }
 
         String timeLogTxt = "<span style=\"color:gray;\">" + Helper.getTimeNow()+" </span>";
-        textToAppend = "<span style=\"color:"+color+";\">"+textToAppend+"</span>";
+        textToAppend = "<span style=\"color:"+colorString+";\">"+textToAppend+"</span>";
 
         String text = "";
         if (Objects.equals(textSpan, "")) text = timeLogTxt + textToAppend;
         else text = textSpan + "<br>" + timeLogTxt + textToAppend;
         text = text.trim();
         textSpan = text;
-
 
         String finalText = text;
         mainActivity.runOnUiThread(() -> mainActivity.text_log.setText(Html.fromHtml(finalText,  Html.FROM_HTML_MODE_LEGACY)));

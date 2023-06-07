@@ -31,7 +31,7 @@ public class Helper {
     }
 
     public static Date stringToDate(String str) {
-        Log.e("date11", str.toString());
+//        Log.e("date11", str.toString());
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
         try {
             return format.parse(str);
@@ -79,7 +79,6 @@ public class Helper {
     public static String getDateTimeString() {
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date();
-        //dasdasd
         return dateFormat.format(date);
     }
 

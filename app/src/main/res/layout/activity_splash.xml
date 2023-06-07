@@ -5,14 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    tools:context=".SplashActivity">
+    tools:context=".activities.SplashActivity">
 
     <ImageView
-        android:layout_width="260dp"
-        android:layout_height="260dp"
+        android:layout_width="360dp"
+        android:layout_height="360dp"
         android:layout_centerInParent="true"
-        android:src="@drawable/paj_logo"
-        />
+        android:src="@drawable/paj_logo" />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -21,5 +20,6 @@
         android:layout_marginBottom="12dp"
         android:layout_centerHorizontal="true"
         android:id="@+id/footer_paj"
-        android:textSize="12sp"/>
+        android:textSize="16sp"
+        android:gravity="center_horizontal"/>
 </RelativeLayout>

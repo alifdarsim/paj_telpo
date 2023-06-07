@@ -1,7 +1,7 @@
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/black"
     android:id="@+id/logger_panel">
 
@@ -23,31 +23,90 @@
         android:layout_marginEnd="12dp">
 
         <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/md_blue_A400"
+            android:id="@+id/btn_check_update"
+            android:textColor="@color/white"
+            android:text="CHECK FOR UPDATE"
+            android:padding="20dp"/>
+
+        <Button
+            android:id="@+id/btn_qr_code"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/md_blue_A400"
+            android:padding="20dp"
+            android:text="ACTIVATE QR CODE"
+            android:textColor="@color/white" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/md_blue_A400"
+            android:id="@+id/btn_reset_bus"
+            android:textColor="@color/white"
+            android:text="RENAME BUS PLATE"
+            android:padding="24dp"/>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/md_blue_A400"
+            android:id="@+id/btn_volume"
+            android:textColor="@color/white"
+            android:text="SET VOLUME"
+            android:padding="20dp"/>
+
+        <Button
             android:id="@+id/btn_clear_log"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/md_blue_A400"
             android:text="CLEAR LOG"
-            android:textColor="@color/white" />
+            android:textColor="@color/white"
+            android:padding="20dp"/>
+
         <Button
+            android:id="@+id/btn_close_logger"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:backgroundTint="@color/md_blue_A400"
-            android:id="@+id/btn_simulate_card"
-            android:textColor="@color/white"
-            android:text="SIMULATE CARD"/>
+            android:backgroundTint="@color/md_white_1000"
+            android:padding="20dp"
+            android:text="CLOSE DEBUGGER" />
 
-<!--        <TextView-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:textColor="@color/white"-->
-<!--            android:text="Log Location Data"-->
-<!--            android:gravity="center_horizontal"-->
-<!--            android:textSize="11sp"/>-->
-<!--        <ToggleButton-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="Log Location"/>-->
 
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:paddingBottom="12dp"
+        android:paddingEnd="12dp">
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardElevation="10dp"
+            app:cardCornerRadius="20dp"
+            app:cardBackgroundColor="@color/white"
+            app:cardMaxElevation="12dp"
+            app:cardPreventCornerOverlap="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="v x.x.x"
+                android:id="@+id/build_number"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:textSize="14sp"
+                android:textColor="@color/black"
+                />
+
+        </androidx.cardview.widget.CardView>
     </LinearLayout>
 </RelativeLayout>

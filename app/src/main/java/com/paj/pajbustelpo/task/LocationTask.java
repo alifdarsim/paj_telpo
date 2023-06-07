@@ -1,12 +1,10 @@
-package com.paj.pajbustelpo;
+package com.paj.pajbustelpo.task;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Location;
-import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -18,9 +16,12 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
+import com.paj.pajbustelpo.DatabaseHelper;
+import com.paj.pajbustelpo.Helper;
+import com.paj.pajbustelpo.activities.MainActivity;
 
 //custom helper class just for paj telpo use
-public class LocationHelper {
+public class LocationTask {
 
     MainActivity mainActivity;
     DatabaseHelper db;
@@ -28,7 +29,7 @@ public class LocationHelper {
     private double cumulativeDisplacement = 0;
     private int cumulativeTime = 0;
 
-    public LocationHelper(MainActivity context, DatabaseHelper db) {
+    public LocationTask(MainActivity context, DatabaseHelper db) {
         this.mainActivity = context;
         this.db = db;
     }
@@ -43,53 +44,57 @@ public class LocationHelper {
             @SuppressLint({"DefaultLocale", "SetTextI18n"})
             @Override
             public void onLocationResult(@NonNull LocationResult locationResult) {
+//                Log.e("tasklocation", "onLocationResult: " + "11111111111111");
                 for (Location location : locationResult.getLocations()) {
                     if (location != null) {
-
-                        //do nothing during startup (5 second) to initialize the GPS
-                        if (delayingLocationData()) return;
 
                         //get location data from satellite
                         double latitude = location.getLatitude();
                         double longitude = location.getLongitude();
                         double speed = location.getSpeed();
                         double bearing = location.getBearing();
-                        long time = location.getTime();
+                        long gpstime = location.getTime();
                         double accuracy = location.getAccuracy();
+
+//                        if (accuracy > 30) {
+//                            mainActivity.logger.writeToLogger("Accuracy is low ("+accuracy+"m). Ignoring GPS data", "yellow");
+//                            return;
+//                        }
 
                         //get displacement from previous location
                         double displacement = Helper.getDisplacement(currentLat, currentLng, latitude, longitude);
                         currentLat = latitude;
                         currentLng = longitude;
 
-                        //check if data is 1st location data, then we can simply ignore this data
-                        if (checkIfGpsNotInit(displacement)) return;
-
                         //collect the cumulative distance only when displacement is more than 1m
                         if (displacement > 1) cumulativeDisplacement = cumulativeDisplacement + displacement;
 
                         //log the location data
-                        logLocationData(latitude, longitude, speed, bearing, time, accuracy, displacement, cumulativeDisplacement);
+                        logLocationData(latitude, longitude, speed, bearing, gpstime, accuracy, displacement, cumulativeDisplacement);
 
 //                        if (cumulativeDisplacement > 40.0){
 //                            mainActivity.logger.writeToLogger("Insert location into sqlite | Lat: " + latitude + ", Lng: " + longitude, "green");
-//                            insertIntoDataBase(latitude, longitude, speed, bearing, time, accuracy);
+//                            insertIntoDataBase(latitude, longitude, speed, bearing, gpstime, accuracy);
 //                        }
 
                         cumulativeTime++;
                         if (cumulativeTime > 4){
                             mainActivity.logger.writeToLogger("Insert location into sqlite | Lat: " + latitude + ", Lng: " + longitude, "green");
-                            insertIntoDataBase(latitude, longitude, speed, bearing, time, accuracy);
+                            if (speed > 1) insertIntoDataBase(latitude, longitude, speed, bearing, gpstime, accuracy);
                             cumulativeTime = 0;
                         }
 
-                        //callback data to mainActivity if needed to do something
-                        listener.locationUpdate(latitude, longitude, speed, bearing, time, accuracy, displacement);
+//                        mainActivity.logger.writeToLogger("Insert location into sqlite | Lat: " + latitude + ", Lng: " + longitude, "green");
+//                        insertIntoDataBase(latitude, longitude, speed, bearing, gpstime, accuracy);
 
+
+                        //callback data to mainActivity if needed to do something
+                        listener.locationUpdate(latitude, longitude, speed, bearing, gpstime, accuracy, displacement);
                     }
                 }
             }
         };
+
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
@@ -126,24 +131,8 @@ public class LocationHelper {
         }
     }
 
-    interface OnGetLocationUpdate {
+    public interface OnGetLocationUpdate {
         void locationUpdate(double latitude, double longitude, double speed, double bearing, long time, double accuracy, double distance);
-    }
-
-    private int gpsDelay = 0;
-    private boolean delayingLocationData(){
-        //during startup of GPS, there is significant location change, so we can delay this reduce data error during GPS startup
-        gpsDelay++;
-        return gpsDelay < 5;
-    }
-
-    private boolean checkIfGpsNotInit(double displacement){
-        //assuming that displacement of each data cannot be 1km, then we can ignore this interval data
-        if (displacement > 1000.0) {
-            cumulativeDisplacement = 0.0;
-            return true;
-        }
-        else return false;
     }
 
 }

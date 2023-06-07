@@ -19,7 +19,6 @@ import java.util.Date;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-    public static final String DATABASE_NAME = "pajtelpo.db";
     public static final String TABLE_NAME = "location_table";
     public static final String COL_1 = "id";
     public static final String COL_2 = "latitude";
@@ -31,13 +30,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_8 = "status";
 
     public DatabaseHelper(Context context) {
-        super(context, DATABASE_NAME, null, 22);
+        super(context, "pajtelpo.db", null, 24);
     }
 
     public Cursor getAllData(){
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor res = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
-//        db.close();
+        Cursor res = db.rawQuery("SELECT * FROM location_table", null);
         return res;
     }
 
@@ -55,7 +53,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             user.setBlacklist(res.getString(5));
             user.setExpired(res.getString(6));
         }
-//        db.close();
         return user;
     }
 
@@ -77,62 +74,55 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return user;
     }
 
-    public JSONObject getUnsendLocation() {
+    public JSONArray getUnsendLocation() {
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor res = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE status = 0 ORDER BY id ASC LIMIT 15", null);
+        Cursor res = db.rawQuery("SELECT * FROM location_table WHERE status = 0 ORDER BY id ASC LIMIT 50", null);
         try{
             JSONArray jsonArray = new JSONArray();
-            if(res.getCount() == 0) return new JSONObject();
+            if(res.getCount() == 0) return new JSONArray();
             while (res.moveToNext()){
                 JSONObject json = new JSONObject();
                 json.put("id", res.getString(0));
+                json.put("tim", res.getString(5));
                 json.put("lat", res.getString(1));
                 json.put("lng", res.getString(2));
                 json.put("spd", res.getString(3));
                 json.put("bea", res.getString(4));
-                json.put("time", res.getString(5));
-                json.put("acc", res.getString(6));
+//                json.put("acc", res.getString(6));
                 jsonArray.put(json);
             }
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("bus", "JTV6100");
-            jsonObject.put("data", jsonArray);
-//            db.close();
-            return jsonObject;
+            return jsonArray;
         }
         catch (Exception e){
             Log.e("Error", "JSON Parsing error");
 //            db.close();
-            return new JSONObject();
+            return new JSONArray();
         }
     }
 
-    public JSONObject getUnsendRidership(){
+    public JSONArray getUnsendRidership(){
+
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor res = db.rawQuery("SELECT * FROM ridership_table WHERE status = 0 ORDER BY id ASC LIMIT 15", null);
+        Cursor res = db.rawQuery("SELECT * FROM ridership_table WHERE status = 0 ORDER BY id ASC LIMIT 30", null);
         try{
             JSONArray jsonArray = new JSONArray();
-            if(res.getCount() == 0) return new JSONObject();
+            if(res.getCount() == 0) return new JSONArray();
             while (res.moveToNext()){
                 JSONObject json = new JSONObject();
                 json.put("id", res.getString(0));
-                json.put("uuid", res.getString(1));
-                json.put("time", res.getString(2));
-                json.put("enter", res.getString(3));
-                json.put("lat", res.getString(4));
-                json.put("lng", res.getString(5));
+                json.put("cid", res.getString(1));
+                json.put("tim", res.getString(2));
+                json.put("lat", res.getString(5));
+                json.put("lng", res.getString(6));
+                json.put("typ", res.getString(3));
+                json.put("tap", res.getString(4));
                 jsonArray.put(json);
             }
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("bus", "JTV6100");
-            jsonObject.put("data", jsonArray);
-//            db.close();
-            return jsonObject;
+            return jsonArray;
         }
         catch (Exception e){
             Log.e("Error", "JSON Parsing error");
-//            db.close();
-            return new JSONObject();
+            return new JSONArray();
         }
 
     }
@@ -142,7 +132,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues contentValues = new ContentValues();
         contentValues.put("status", 1);
         db.update(TABLE_NAME, contentValues, " ID = ?", new String[] {id});
-//        db.close();
         return true;
     }
 
@@ -151,7 +140,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues contentValues = new ContentValues();
         contentValues.put("status", 1);
         db.update("ridership_table", contentValues, " ID = ?", new String[] {id});
-//        db.close();
         return true;
     }
 
@@ -192,53 +180,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     @SuppressLint("DefaultLocale")
-    public boolean isUserTapSecondAgo(String uuid) {
-        int secondsAgo = 5;
-        SQLiteDatabase db = this.getWritableDatabase();
-        Cursor res = db.rawQuery("SELECT * FROM ridership_table WHERE uuid = '"+uuid+"' ORDER BY id DESC LIMIT 1", null);
-        if(res.getCount() == 0) return false;
-        String lastTapTime = null;
-        while (res.moveToNext()){
-            lastTapTime = res.getString(2);
-        }
-        Log.e("44",lastTapTime);
-        Log.e("44",Helper.SecondAgo(lastTapTime)+"");
-        if (Helper.SecondAgo(lastTapTime) < secondsAgo) {
-            Log.e("11","User just tap few seconds ago");
-            return true;
-        }
-
-        return false;
-    }
-
-    @SuppressLint("DefaultLocale")
     public boolean isRidershipOut(String uuid, double currentLat, double currentLng) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        Cursor res = db.rawQuery("SELECT * FROM ridership_table WHERE uuid = '"+uuid+"' ORDER BY id DESC LIMIT 1", null);
-        if(res.getCount() == 0) return false;
-        String lastTapTime = null;
-        double lastLat = 0, lastLng = 0;
-        int lastTapIn = 0;
-        while (res.moveToNext()){
-            Log.e("tapin", res.getString(4));
-            Log.e("lat", res.getString(5));
-            Log.e("lng", res.getString(6));
-            lastTapIn = Integer.parseInt(res.getString(4));
-            lastTapTime = res.getString(2);
-            lastLat = Double.parseDouble(res.getString(4));
-            lastLng = Double.parseDouble(res.getString(5));
-        }
-
-
-
-        if (lastTapIn == 1){
-            Log.e("22","Tapping detect as OUT");
-            return true;
-        }
-        else{
-            Log.e("11","Tapping detect as IN");
-            return false;
-        }
+//        SQLiteDatabase db = this.getWritableDatabase();
+//        Cursor res = db.rawQuery("SELECT * FROM ridership_table WHERE uuid = '"+uuid+"' ORDER BY id DESC LIMIT 1", null);
+//        if(res.getCount() == 0) return false;
+//        String lastTapTime = null;
+//        double lastLat = 0, lastLng = 0;
+//        int lastTapIn = 0;
+//        while (res.moveToNext()){
+//            Log.e("tapin", res.getString(4));
+//            Log.e("lat", res.getString(5));
+//            Log.e("lng", res.getString(6));
+//            lastTapIn = Integer.parseInt(res.getString(4));
+//            lastTapTime = res.getString(2);
+//            lastLat = Double.parseDouble(res.getString(4));
+//            lastLng = Double.parseDouble(res.getString(5));
+//        }
+//
+//        if (lastTapIn == 1){
+//            Log.e("22","Tapping detect as OUT");
+//            return true;
+//        }
+//        else{
+//            Log.e("11","Tapping detect as IN");
+//            return false;
+//        }
 
 //        if (Helper.SecondAgo(lastTapTime) > 10) {
 //            Log.e("11","Tapping detect as IN");
@@ -251,22 +217,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 //            Log.e("22","Tapping detect as OUT");
 //            return true;
 //        }
-//        return false;
+        return false;
     }
 
     @SuppressLint("DefaultLocale")
-    public boolean insertRidershipData(String uuid, String deviceTime, int tap_type, int tapIn ,double latitude, double longitude){
+    public boolean insertRidershipData(String uuid, String time, int tap_type, int tapIn ,double latitude, double longitude){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put("uuid", uuid);
-        contentValues.put("deviceTime", deviceTime);
+        contentValues.put("time", time);
         contentValues.put("tap_type", tap_type);
         contentValues.put("tap_in", tapIn);
         contentValues.put("latitude", latitude);
         contentValues.put("longitude", longitude);
         contentValues.put("status", 0);
         long result = db.insert("ridership_table", null, contentValues);
-//        db.close();
         return result != -1;
     }
 
@@ -304,7 +269,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String qry2 = "CREATE TABLE ridership_table" +
                 "(ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "uuid TEXT, " +
-                "devicetime TEXT, " +
+                "time TEXT, " +
                 "tap_type TEXT, " +
                 "tap_in TEXT, " +
                 "latitude TEXT, " +
