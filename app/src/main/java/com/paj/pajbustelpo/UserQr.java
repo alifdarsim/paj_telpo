@@ -1,6 +1,6 @@
 package com.paj.pajbustelpo;
 
-public class User {
+public class UserQr {
 
     public String type;
     public String typeid;

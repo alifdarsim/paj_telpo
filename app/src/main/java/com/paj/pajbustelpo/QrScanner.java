@@ -70,7 +70,6 @@ public class QrScanner {
         mCodeScanner.setDecodeCallback(result -> mainActivity.runOnUiThread(() -> {
             String qrCodeText = result.getText();
             mainActivity.logger.writeToLogger("Qr Detected: " + qrCodeText, "yellow");
-
             try{
                 String secretText = SecretDecoder.decodeSecretText(qrCodeText);
                 DataComponent data = new DataComponent(secretText);

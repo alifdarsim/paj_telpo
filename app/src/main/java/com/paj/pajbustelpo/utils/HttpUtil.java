@@ -96,19 +96,19 @@ public class HttpUtil {
     }
 
     public HttpUtil(String endpoint){
-        this.url = "https://iot.paj.com.my/api/v2/"+endpoint;
+        this.url = "https://iot.paj.com.my/api/v3/"+endpoint;
     }
 
     public HttpUtil(MainActivity mainActivity, String endpoint, JSONObject jsonObject){
         this.mainActivity = mainActivity;
         MediaType JSON = MediaType.parse("application/json; charset=utf-8");
         this.body = RequestBody.create(JSON, jsonObject.toString());
-        this.url = "https://iot.paj.com.my/api/v2/"+endpoint;
+        this.url = "https://iot.paj.com.my/api/v3/"+endpoint;
     }
 
     public HttpUtil(String endpoint, RequestBody paramsBody){
         this.body = paramsBody;
-        this.url = "https://iot.paj.com.my/api/v2/"+endpoint;
+        this.url = "https://iot.paj.com.my/api/v3/"+endpoint;
     }
 
     public interface OnGetResponse {

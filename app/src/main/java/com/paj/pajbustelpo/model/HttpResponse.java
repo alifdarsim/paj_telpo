@@ -1,6 +1,7 @@
 package com.paj.pajbustelpo.model;
 
 import com.paj.pajbustelpo.User;
+import com.paj.pajbustelpo.UserQr;
 
 import java.util.List;
 
@@ -48,6 +49,7 @@ public class HttpResponse {
     public List<Integer> r() {return r;}
     public List<Integer> a() {return a;}
     public List<User> u() {return u;}
+    public List<UserQr> q() {return q;}
 
     //
     private boolean success;
@@ -63,5 +65,6 @@ public class HttpResponse {
     private List<Integer> r;
     private List<Integer> a;
     private List<User> u;
+    private List<UserQr> q;
 
 }

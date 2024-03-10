@@ -3,6 +3,7 @@ package com.paj.pajbustelpo.utils;
 import android.annotation.SuppressLint;
 import android.media.MediaPlayer;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 
 import androidx.core.content.ContextCompat;
@@ -39,6 +40,8 @@ public class ReaderHelper {
     public static void ScanningCard(MainActivity mainActivity, int tapping_type, String card_uuid) {
         if (tapping_type == TapType.KMJ){
             String username = mainActivity.db.getUserName("kmj", card_uuid);
+            Log.e("ADASDASDASDAS", "ScanningCard: " + username);
+            Log.e("ADASDASDASDAS", "isActive: " + username);
             if (Objects.equals(username, null)) DisplayError(mainActivity, "KAD TIDAK \nBERDAFTAR");
             else {
                 boolean isActive = mainActivity.db.isUserActive("kmj", card_uuid);

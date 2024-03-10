@@ -12,10 +12,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -68,9 +64,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor res = null;
         try{
             if (type.equals("qr")) {
-                res = db.rawQuery("SELECT name FROM user_table WHERE type = 'qr' AND typeid = ?", new String[]{userid_or_uuid});
+                res = db.rawQuery("SELECT name FROM user_qr_table WHERE id = ?", new String[]{userid_or_uuid});
             } else if (type.equals("kmj")) {
-                res = db.rawQuery("SELECT name FROM user_table WHERE type = 'kmj' AND uid = ?", new String[]{userid_or_uuid});
+                res = db.rawQuery("SELECT name FROM user_table WHERE uid = ?", new String[]{userid_or_uuid});
             } else {
                 return null;  // Invalid type
             }
@@ -96,9 +92,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor res = null;
         try{
             if (type.equals("qr")) {
-                res = db.rawQuery("SELECT status FROM user_table WHERE type = 'qr' AND typeid = ?", new String[]{userid_or_uuid});
+                res = db.rawQuery("SELECT status FROM user_qr_table WHERE id = ?", new String[]{userid_or_uuid});
             } else if (type.equals("kmj")) {
-                res = db.rawQuery("SELECT status FROM user_table WHERE type = 'kmj' AND uid = ?", new String[]{userid_or_uuid});
+                res = db.rawQuery("SELECT status FROM user_table WHERE uid = ?", new String[]{userid_or_uuid});
             } else {
                 return false;  // Invalid type
             }
@@ -120,17 +116,35 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public String getUserLatestUpdate(){
+    public String getLatestUserKmj(){
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor res = db.rawQuery("SELECT updated_at FROM user_table ORDER BY updated_at DESC LIMIT 1", null);
+        Cursor res = db.rawQuery("SELECT id FROM user_table ORDER BY id DESC LIMIT 1", null);
         try{
-            if(res.getCount() == 0) return "2023-01-01 00:00:00";
+            if(res.getCount() == 0) return "0";
             res.moveToFirst();
             return res.getString(0);
         }
         catch (Exception e){
             Log.e("Error", "JSON Parsing error");
-            return "2023-01-01 00:00:00";
+            return "0";
+        }
+        finally {
+            res.close();
+            db.close();
+        }
+    }
+
+    public String getLatestUserQr(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res = db.rawQuery("SELECT id FROM user_qr_table ORDER BY id DESC LIMIT 1", null);
+        try{
+            if(res.getCount() == 0) return "0";
+            res.moveToFirst();
+            return res.getString(0);
+        }
+        catch (Exception e){
+            Log.e("Error", "JSON Parsing error");
+            return "0";
         }
         finally {
             res.close();
@@ -276,38 +290,30 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     @SuppressLint("DefaultLocale")
-    public boolean updateUserData(String type, String typeid, String name, String status, String citizen, String uid){
+    public boolean insertUserData(String id, String uid, String name, String status){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
+        contentValues.put("id", id);
+        contentValues.put("uid", uid);
         contentValues.put("name", name);
         contentValues.put("status", status);
-        contentValues.put("citizen", citizen);
-        contentValues.put("uid", uid);
-        contentValues.put("updated_at", Helper.getDateTimeString());
-        String[] whereArgs = {type, typeid};
-
-        // Check if the row already exists
-        String query = "SELECT COUNT(*) FROM user_table WHERE type = ? AND typeid = ?";
-        Cursor cursor = db.rawQuery(query, whereArgs);
-        if (cursor.moveToFirst()) {
-            int rowCount = cursor.getInt(0);
-            cursor.close();
-            if (rowCount > 0) {
-                // Row exists, perform an update
-                db.update("user_table", contentValues, "type = ? AND typeid = ?", whereArgs);
-                Log.e("update", name);
-            } else {
-                // Row doesn't exist, perform an insert
-                Log.e("insert", name);
-                contentValues.put("type", type);
-                contentValues.put("typeid", typeid);
-                db.insert("user_table", null, contentValues);
-            }
-        } else {
-            cursor.close();
-        }
+        db.insert("user_table", null, contentValues);
         return true;
     }
+
+    @SuppressLint("DefaultLocale")
+    public boolean insertUserQrData(String id, String uid, String name, String status){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("id", id);
+        contentValues.put("uid", uid);
+        contentValues.put("name", name);
+        contentValues.put("status", status);
+        db.insert("user_qr_table", null, contentValues);
+        return true;
+    }
+
+
 
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -339,23 +345,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         //creating table user
         String qry3 = "CREATE TABLE user_table" +
-                "(ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "type TEXT, " +
-                "typeid TEXT, " +
-                "name TEXT, " +
-                "status TEXT, " +
-                "citizen TEXT, " +
+                "(ID INTEGER PRIMARY KEY, " +
                 "uid TEXT, " +
-                "updated_at DATETIME)";
+                "name TEXT, " +
+                "status INTERGER)";
         db.execSQL(qry3);
 
-        //creating table user
+        //creating table activated
         String qry4 = "CREATE TABLE activated_table" +
                 "(ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "version TEXT, " +
                 "activated DATETIME, "+
                 "status INTERGER)";
         db.execSQL(qry4);
+
+        //creating table qr
+        String qry5 = "CREATE TABLE user_qr_table" +
+                "(ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "uid TEXT, " +
+                "name TEXT, " +
+                "status INTERGER)";
+        db.execSQL(qry5);
 
 //        db.close();
 
@@ -366,6 +376,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String qry = "DROP TABLE IF EXISTS " + TABLE_NAME;
         db.execSQL(qry);
         qry = "DROP TABLE IF EXISTS user_table";
+        db.execSQL(qry);
+        qry = "DROP TABLE IF EXISTS user_qr_table";
         db.execSQL(qry);
         qry = "DROP TABLE IF EXISTS ridership_table";
         db.execSQL(qry);

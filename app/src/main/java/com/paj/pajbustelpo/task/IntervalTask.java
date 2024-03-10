@@ -2,8 +2,8 @@ package com.paj.pajbustelpo.task;
 import android.util.Log;
 
 import com.paj.pajbustelpo.DatabaseHelper;
-import com.paj.pajbustelpo.Helper;
 import com.paj.pajbustelpo.User;
+import com.paj.pajbustelpo.UserQr;
 import com.paj.pajbustelpo.utils.LoggerHelper;
 import com.paj.pajbustelpo.activities.MainActivity;
 import com.paj.pajbustelpo.model.HttpResponse;
@@ -16,7 +16,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -60,7 +59,8 @@ public class IntervalTask implements Runnable {
 
         JSONArray jsonLocation = db.getUnsendLocation();
         JSONArray jsonRidership = db.getUnsendRidership();
-        String userLastUpdate = db.getUserLatestUpdate();
+        String userLatest = db.getLatestUserKmj();
+        String userQrLatest = db.getLatestUserQr();
         JSONArray jsonActivated = db.getUnsendActivated();
 
         JSONObject jsonObject = new JSONObject();
@@ -68,7 +68,8 @@ public class IntervalTask implements Runnable {
         jsonObject.put("cur", currentLocation);
         jsonObject.put("loc", jsonLocation);
         jsonObject.put("rid", jsonRidership);
-        jsonObject.put("usr", userLastUpdate);
+        jsonObject.put("usr", userLatest);
+        jsonObject.put("uqr", userQrLatest);
         jsonObject.put("act", jsonActivated);
 
         sendIntervalTask(jsonObject);
@@ -107,12 +108,19 @@ public class IntervalTask implements Runnable {
                 List<User> user_list = post.u();
                 for (int i = 0; i < user_list.size(); i++) {
                     String name = user_list.get(i).getName();
-                    String citizen = user_list.get(i).getCitizen();
                     String status = user_list.get(i).getStatus();
-                    String type = user_list.get(i).getType();
-                    String typeid = user_list.get(i).getTypeid();
                     String uid = user_list.get(i).getUid();
-                    mainActivity.db.updateUserData(type, typeid, name, status, citizen, uid);
+                    String id = user_list.get(i).getId();
+                    mainActivity.db.insertUserData(id, uid, name, status);
+                }
+
+                List<UserQr> user_qr_list = post.q();
+                for (int i = 0; i < user_qr_list.size(); i++) {
+                    String name = user_qr_list.get(i).getName();
+                    String status = user_qr_list.get(i).getStatus();
+                    String uid = user_qr_list.get(i).getUid();
+                    String id = user_qr_list.get(i).getId();
+                    mainActivity.db.insertUserQrData(id, uid, name, status);
                 }
 
                 List<Integer> ids_activated = post.a();
