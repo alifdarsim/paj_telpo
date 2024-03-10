@@ -20,7 +20,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.List;
 
 public class QrScanner {
 
@@ -64,7 +63,7 @@ public class QrScanner {
         mCodeScanner = new CodeScanner(mainActivity, scannerView);
 
         mCodeScanner.setCamera(CodeScanner.CAMERA_FRONT);
-        mCodeScanner.setFormats(CodeScanner.ALL_FORMATS);
+        mCodeScanner.setFormats(CodeScanner.TWO_DIMENSIONAL_FORMATS);
         mCodeScanner.setAutoFocusEnabled(true);
         mCodeScanner.setScanMode(ScanMode.SINGLE);
 
@@ -86,16 +85,17 @@ public class QrScanner {
                 long minutesDifference = timeDifferenceInMillis / (60 * 1000);
                 if (minutesDifference >= -5 && minutesDifference <= 5) {
                     //enter the telpo
-                    ReaderHelper.checkCard(mainActivity, qrCodeText, ReaderHelper.TapType.CODE, true);
-
-                    //let the server know that the user boarding
-                    notifyServer(qrCodeText, userId, Helper.getDateTimeString());
-
+                    int scanState = ReaderHelper.ScanningQR(mainActivity, ReaderHelper.TapType.CODE, userId);
+                    if (scanState == ReaderHelper.scanCase.SUCCESS){
+                        //let the server know that the user boarding
+                        notifyServer(qrCodeText, userId, Helper.getDateTimeString());
+                    }
                 } else {
-                    ReaderHelper.displayError(mainActivity, "KOD TAMAT TEMPOH");
+                    ReaderHelper.DisplayError(mainActivity, "KOD TAMAT\nTEMPOH");
                 }
             } catch (Exception e){
-                ReaderHelper.displayError(mainActivity, "KOD TIDAK SAH");
+                Log.e(TAG, "init: " + e);
+                ReaderHelper.DisplayError(mainActivity, "KOD TIDAK\nSAH");
             }
 
             //wait 2 second after scan, then start scan again
@@ -113,18 +113,19 @@ public class QrScanner {
         jsonObject.put("scan_time", scan_time);
 
         mainActivity.logger.writeToLogger("\uD83D\uDFE1 Notify server a user is boarding...", "yellow");
-        HttpUtil httpUtil = new HttpUtil("code/boarding", jsonObject);
-        httpUtil.post(response -> mainActivity.runOnUiThread(() -> {
+        HttpUtil httpUtil = new HttpUtil(mainActivity, "code/boarding", jsonObject);
+        httpUtil.post((response, responseCode) -> mainActivity.runOnUiThread(() -> {
+            Log.e(TAG, "notifyServer: " + response);
+            Log.e(TAG, "notifyServer2222: " + responseCode);
             mainActivity.logger.writeToLogger("\uD83D\uDFE2 Notify server success. Response: " + response, "green");
             Moshi moshi = new Moshi.Builder().build();
             JsonAdapter<HttpResponse> jsonAdapter = moshi.adapter(HttpResponse.class);
             try {
                 HttpResponse post = jsonAdapter.fromJson(response);
                 assert post != null;
-                Log.e("111111", post + "," + response);
+                //todo if response error then keep try to upload data for 1 minute
             } catch (IOException e) {
                 e.printStackTrace();
-                Log.e("222222", "failleeeddd");
                 mainActivity.logger.writeToLogger("\uD83D\uDD34 Notify user boarding fail", "red");
             }
 

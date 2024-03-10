@@ -7,73 +7,141 @@
     android:background="@color/white"
     app:ignore="NamespaceTypo">
 
-    <ImageView
-        android:id="@+id/paj_logo"
-        android:layout_width="150dp"
-        android:layout_height="100dp"
-        android:layout_marginStart="12dp"
-        android:src="@drawable/paj_logo" />
-
-<!--    <ImageView-->
-<!--        android:layout_width="100dp"-->
-<!--        android:layout_height="70dp"-->
-<!--        android:layout_marginTop="12dp"-->
-<!--        android:layout_centerHorizontal="true"-->
-<!--        android:src="@drawable/arrow_up" />-->
-
-    <me.ibrahimsn.lib.CirclesLoadingView
-        android:layout_width="match_parent"
-        android:layout_height="120dp"
-        app:circleRadius="5dp"
-        app:circleMargin="50dp"
-        app:animDistance="20dp"
-        app:animDuration="500"
-        app:animDelay="150"
-        app:animInterpolator="accelerateDecelerate"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="16dp"/>
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/card_scan_background"
+        android:id="@+id/card_scan_background_result"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginStart="100dp"
-        android:layout_marginTop="100dp"
-        android:layout_marginEnd="100dp"
-        android:layout_marginBottom="110dp"
-        card_view:cardCornerRadius="50dp"
+        card_view:cardBackgroundColor="@color/md_green_A700">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_gravity="center_vertical"
+            >
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/check"
+                android:id="@+id/result_image"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="70dp"
+                android:layout_marginEnd="60dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/text_scan"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="SELAMAT \nDATANG"
+                    android:textColor="@color/white"
+                    android:textSize="90sp"
+                    android:fontFamily="sans-serif-black"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/text_scan_footer1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="JENIS KAD: MYKAD"
+                    android:textColor="@color/white"
+                    android:textSize="26sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/text_scan_footer2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="PEMILIK: ALIF DARSIM"
+                    android:textColor="@color/white"
+                    android:textSize="26sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/text_scan_footer3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="MASA: 20/02/2023 | 13:23:65 PM"
+                    android:textColor="@color/white"
+                    android:textSize="26sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+
+
+
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_scan_background_idle"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         card_view:cardBackgroundColor="@color/md_blue_500">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_gravity="center_vertical">
-
+            android:layout_gravity="center_vertical"
+            android:orientation="vertical">
             <TextView
-                android:id="@+id/text_scan"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:text="SELAMAT DATANG"
+                android:text="SILA IMBAS MYKAD"
+                android:layout_marginStart="50dp"
+                android:layout_marginEnd="50dp"
                 android:textColor="@color/white"
-                android:textSize="60sp"
-                android:textStyle="bold" />
-
+                android:textSize="100sp"
+                android:fontFamily="sans-serif-black"
+                android:textStyle="bold"
+                android:layout_gravity="center_vertical"
+                android:gravity="center_horizontal"/>
             <TextView
-                android:id="@+id/text_scan_footer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:text="20/20/2022 | 11:23:21"
+                android:textSize="30sp"
                 android:textColor="@color/white"
-                android:textSize="32sp"
-                android:textStyle="bold" />
+                android:gravity="center_horizontal"
+                android:text="MyKad / KMJ / PAJ QR diterima"/>
         </LinearLayout>
 
 
     </androidx.cardview.widget.CardView>
+
+    <ImageView
+        android:id="@+id/paj_logo"
+        android:layout_width="150dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="12dp"
+        android:elevation="10dp"
+        android:src="@drawable/paj_logo" />
+
+    <ImageView
+        android:id="@+id/connected_bar"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="12dp"
+        android:elevation="10dp"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="12dp"
+        android:rotation="180"
+        android:src="@drawable/wifi" />
+
+<!--    <me.ibrahimsn.lib.CirclesLoadingView-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="120dp"-->
+<!--        app:circleRadius="5dp"-->
+<!--        app:circleMargin="50dp"-->
+<!--        app:animDistance="20dp"-->
+<!--        app:animDuration="500"-->
+<!--        app:animDelay="150"-->
+<!--        android:elevation="10dp"-->
+<!--        app:animInterpolator="accelerateDecelerate"-->
+<!--        android:layout_alignParentBottom="true"-->
+<!--        android:layout_centerHorizontal="true"-->
+<!--        android:layout_marginBottom="16dp"/>-->
 
 
 </RelativeLayout>

@@ -1,8 +1,14 @@
 package com.paj.pajbustelpo.utils;
 
+import android.graphics.PorterDuff;
+import android.os.Handler;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+
+import com.paj.pajbustelpo.R;
+import com.paj.pajbustelpo.activities.MainActivity;
 
 import org.json.JSONObject;
 
@@ -27,6 +33,11 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.internal.http2.Header;
+import okio.Buffer;
+import okio.BufferedSink;
+import okio.GzipSink;
+import okio.Okio;
+import okio.Sink;
 
 public class HttpUtil {
 
@@ -35,6 +46,7 @@ public class HttpUtil {
     private Header header;
 
     private String TAG = "HttpUtil";
+    private MainActivity mainActivity;
 
     //overriding the server certificate
     public OkHttpClient getUnsafeOkHttpClient() {
@@ -84,22 +96,23 @@ public class HttpUtil {
     }
 
     public HttpUtil(String endpoint){
-        this.url = "https://iot.paj.com.my/api/v1/"+endpoint;
+        this.url = "https://iot.paj.com.my/api/v2/"+endpoint;
     }
 
-    public HttpUtil(String endpoint, JSONObject jsonObject){
+    public HttpUtil(MainActivity mainActivity, String endpoint, JSONObject jsonObject){
+        this.mainActivity = mainActivity;
         MediaType JSON = MediaType.parse("application/json; charset=utf-8");
         this.body = RequestBody.create(JSON, jsonObject.toString());
-        this.url = "https://iot.paj.com.my/api/v1/"+endpoint;
+        this.url = "https://iot.paj.com.my/api/v2/"+endpoint;
     }
 
     public HttpUtil(String endpoint, RequestBody paramsBody){
         this.body = paramsBody;
-        this.url = "https://iot.paj.com.my/api/v1/"+endpoint;
+        this.url = "https://iot.paj.com.my/api/v2/"+endpoint;
     }
 
     public interface OnGetResponse {
-        void Response(String response);
+        void Response(String response, int responseCode);
     }
 
     public void getResponse(OnGetResponse listener) {
@@ -112,7 +125,7 @@ public class HttpUtil {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 String responseString = response.body().string();
-                listener.Response(responseString);
+                listener.Response(responseString, response.code());
             }
 
             @Override
@@ -124,27 +137,88 @@ public class HttpUtil {
     }
 
     public void post(OnGetResponse listener) {
-//        Log.e(TAG, "Try to call post");
         OkHttpClient okHttpClient = getUnsafeOkHttpClient();
+
+        // Compress the request body using GZIP
+        RequestBody compressedBody = compressRequestBody(body);
+//        long payloadSize = calculatePayloadSize(body);
+//        Log.e(TAG, "post: " + payloadSize);
+//        long payloadSize2 = calculatePayloadSize(compressedBody);
+//        Log.e(TAG, "post: " + payloadSize2);
         Request request = new Request.Builder()
                 .url(url)
-                .post(body)
+                .post(compressedBody)
+                .addHeader("Content-Encoding", "gzip") // Set the Content-Encoding header to indicate compression
                 .build();
 
         Callback callback = new Callback() {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                if (response.code() == 200) ChangeConnectedIconColor(R.color.md_green_500);
+                else ChangeConnectedIconColor(R.color.md_red_500);
                 String responseString = response.body().string();
-                listener.Response(responseString);
+                listener.Response(responseString, response.code());
             }
 
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                ChangeConnectedIconColor(R.color.md_red_500);
                 Log.e(TAG, "onFailure: The http call was fail at url" + url);
-//                listener.Failed("asd");
             }
         };
          okHttpClient.newCall(request).enqueue(callback);
+    }
+
+    private void ChangeConnectedIconColor(int color){
+        mainActivity.runOnUiThread(() -> {
+            mainActivity.connected_bar.setColorFilter(ContextCompat.getColor(mainActivity, color), PorterDuff.Mode.SRC_IN);
+            new Handler().postDelayed(() -> {
+                mainActivity.runOnUiThread(() -> mainActivity.connected_bar.setColorFilter(ContextCompat.getColor(mainActivity, R.color.white), PorterDuff.Mode.SRC_IN));
+            }, 1500); // Delay in milliseconds (1 second = 1000 milliseconds)
+        });
+    }
+
+    private RequestBody compressRequestBody(RequestBody requestBody) {
+        return new RequestBody() {
+            @Override
+            public MediaType contentType() {
+                return requestBody.contentType();
+            }
+
+            @Override
+            public long contentLength() throws IOException {
+                return -1; // We don't know the compressed length in advance
+            }
+
+            @Override
+            public void writeTo(BufferedSink sink) throws IOException {
+                BufferedSink gzipSink = Okio.buffer(new GzipSink(sink));
+                requestBody.writeTo(gzipSink);
+                gzipSink.close();
+            }
+        };
+    }
+
+    private long calculatePayloadSize(RequestBody requestBody) {
+        try {
+            // Create a sink to write the request body data
+            Buffer buffer = new Buffer();
+            BufferedSink bufferedSink = Okio.buffer((Sink) buffer);
+
+            // Write the request body to the sink
+            requestBody.writeTo(bufferedSink);
+
+            // Close the sink to flush any remaining data
+            bufferedSink.close();
+
+            // Return the size of the payload
+            return buffer.size();
+        } catch (IOException e) {
+            // Handle any exceptions that may occur
+            e.printStackTrace();
+        }
+
+        return 0;
     }
 
     public boolean isInternetAvailable() {

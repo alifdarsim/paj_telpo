@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import com.paj.pajbustelpo.ScannedCard;
 import com.paj.pajbustelpo.activities.MainActivity;
 import com.paj.pajbustelpo.utils.DeviceUtils;
 import com.paj.pajbustelpo.utils.ReaderHelper;
@@ -39,6 +40,28 @@ public class ReaderTask {
         return sb.toString().trim();
     }
 
+    public static boolean scanCard(String fullbyte){
+        if (fullbyte.contains("8804")) {
+            int startIndex = fullbyte.indexOf("8804") + 4;
+            ScannedCard.uuid = fullbyte.substring(startIndex, startIndex + 8);
+            ScannedCard.type = ReaderHelper.TapType.MYKAD;
+            return true;
+        }
+        if (fullbyte.contains("0804")) {
+            int startIndex = fullbyte.indexOf("0804") + 4;
+            ScannedCard.uuid = fullbyte.substring(startIndex, startIndex + 8);
+            ScannedCard.type = ReaderHelper.TapType.MYKAD;
+            return true;
+        }
+        else if (fullbyte.contains("44000007")) {
+            int startIndex = fullbyte.indexOf("44000007") + 8;
+            String uuid = fullbyte.substring(startIndex, startIndex + 14);
+            ScannedCard.uuid = uuid;
+            ScannedCard.type = ReaderHelper.TapType.KMJ;
+            return true;
+        } else return false;
+    }
+
     @SuppressLint("HandlerLeak")
     public void start() {
 
@@ -56,17 +79,12 @@ public class ReaderTask {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if (!stopReading) {
-                    readThread = new ReadThread();
-                    readThread.start();
-                }
+            if (!stopReading) {
+                readThread = new ReadThread();
+                readThread.start();
+            }
             }
         }, 2000, 500);
-
-//        Card Type	         ATQA  SAK	UID Length
-//        Mifare Classic 1K	00 04	08	4 Bytes
-//        Mifare Classic 4K	00 02	18	4 Bytes
-//        Mifare Ultralight	00 44	00	7 Bytes
 
         handler = new Handler() {
             @Override
@@ -78,38 +96,15 @@ public class ReaderTask {
                             byte[] byte_data = (byte[]) msg.obj;
                             if (byte_data[0] == 0x41) {
                                 Log.e(TAG, "Full byte: " + byteArrayToHexString(byte_data));
-
-//                                byte[] sak = {byte_data[0]};
-//                                String _sak = byteArrayToHexString(sak);
-//                                Log.e(TAG, "sak: " + _sak);
-//
-//                                byte[] sak1 = {byte_data[1]};
-//                                String _sak1 = byteArrayToHexString(sak1);
-//                                Log.e(TAG, "sak: " + _sak1);
-//
-//                                byte[] sak2 = {byte_data[2]};
-//                                String _sak2 = byteArrayToHexString(sak2);
-//                                Log.e(TAG, "sak: " + _sak2);
-//
-//                                byte[] sak3 = {byte_data[3]};
-//                                String _sak3 = byteArrayToHexString(sak3);
-//                                Log.e(TAG, "sak: " + _sak3);
-//
-//                                byte[] sak4 = {byte_data[4]};
-//                                String _sak4 = byteArrayToHexString(sak4);
-//                                Log.e(TAG, "sak: " + _sak4);
-//
-//                                byte[] sak5 = {byte_data[5]};
-//                                String _sak5 = byteArrayToHexString(sak5);
-//                                Log.e(TAG, "sak: " + _sak5);
-
-                                //expected to be a mifare classic card
                                 byte[] bytes = {byte_data[0], byte_data[1], byte_data[2], byte_data[3], byte_data[4], byte_data[5], byte_data[6], byte_data[7], byte_data[8], byte_data[9], byte_data[10], byte_data[11], byte_data[12], byte_data[13]};
-                                String str_uid = byteArrayToHexString(bytes);
-                                String extractedString = str_uid.substring(10, 18).replaceAll("\\s+", "");
-                                ReaderHelper.checkCard(mainActivity, extractedString, ReaderHelper.TapType.CARD, true);
+                                String fullbytestring = byteArrayToHexString(bytes);
+                                mainActivity.logger.writeToLogger("Full Byte:" + fullbytestring, "green");
+                                boolean success = scanCard(fullbytestring);
+                                if (success)  ReaderHelper.ScanningCard(mainActivity, ScannedCard.type, ScannedCard.uuid);
+                                else ReaderHelper.DisplayError(mainActivity, "KAD TIDAK\nSAH");
+
                             } else {
-                                ReaderHelper.checkCard(mainActivity, "NOT_41_CARD", ReaderHelper.TapType.CARD, true);
+                                ReaderHelper.DisplayError(mainActivity, "KAD TIDAK\nSAH");
                             }
                             handler.postDelayed(() -> stopReading = false, 2000);
                         }
@@ -118,7 +113,7 @@ public class ReaderTask {
                             break;
                     }
                 } catch (Exception e) {
-                    ReaderHelper.checkCard(mainActivity, "AAAAAAAA", ReaderHelper.TapType.CARD, true);
+                    ReaderHelper.DisplayError(mainActivity, "KAD TIDAK \nDIKENAL PASTI");
                     handler.postDelayed(() -> stopReading = false, 2000);
                 }
             }

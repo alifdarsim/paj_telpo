@@ -2,63 +2,59 @@ package com.paj.pajbustelpo;
 
 public class User {
 
-    public String uuid;
-    public String username;
-    public String mykad_uid;
-    public String qrcode_uid;
-    public String blacklist;
-    public String expired;
+    public String type;
+    public String typeid;
+    public String name;
+    public String status;
+    public String citizen;
+    public String uid;
 
-    public String getUuid() {
-        return uuid;
+    public String getType() {
+        return type;
     }
 
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
+    public void setType(String type) {
+        this.type = type;
     }
 
-    public String getUsername() {
-        return username;
+    public String getTypeid() {
+        return typeid;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setTypeid(String typeid) {
+        this.typeid = typeid;
     }
 
-    public String getMykad_uid() {
-        return mykad_uid;
+    public String getName() {
+        return name;
     }
 
-    public void setMykad_uid(String mykad_uid) {
-        this.mykad_uid = mykad_uid;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getQrcode_uid() {
-        return qrcode_uid;
+    public String getStatus() {
+        return status;
     }
 
-    public void setQrcode_uid(String qrcode_uid) {
-        this.qrcode_uid = qrcode_uid;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
-    public String isBlacklist() {
-        return blacklist;
+    public String getCitizen() {
+        return citizen;
     }
 
-    public void setBlacklist(String blacklist) {
-        this.blacklist = blacklist;
+    public void setCitizen(String citizen) {
+        this.citizen = citizen;
     }
 
-    public String getExpired() {
-        return expired;
+    public String getUid() {
+        return uid;
     }
 
-    public void setExpired(String expired) {
-        this.expired = expired;
-    }
-
-    public boolean isUuidExist(){
-        return uuid != null;
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 
 }

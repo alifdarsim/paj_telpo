@@ -55,38 +55,43 @@ public class UpdateTask {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("version", BuildConfig.VERSION_CODE);
 
-        HttpUtil httpUtil = new HttpUtil("telpo/update", jsonObject);
-        httpUtil.post(response -> mainActivity.runOnUiThread(() -> {
-
+        HttpUtil httpUtil = new HttpUtil(mainActivity, "telpo/checkversion", jsonObject);
+        httpUtil.post((response, responseCode) -> mainActivity.runOnUiThread(() -> {
+            if (responseCode != 200) {
+                mainActivity.logger.writeToLogger("\uD83D\uDFE2 Internal server error.", "red");
+                return;
+            }
+            Log.e(TAG, "updateSoftware: " + response);
             Moshi moshi = new Moshi.Builder().build();
             JsonAdapter<HttpResponse> jsonAdapter = moshi.adapter(HttpResponse.class);
             try {
                 HttpResponse post = jsonAdapter.fromJson(response);
                 assert post != null;
+                Log.e(TAG, "isupdate: " + post.isUpdate());
                 if (post.isUpdate()) {
                     new MaterialDialog.Builder(mainActivity)
-                            .title("Update Available")
-                            .content("Kindly download the newer version and press INSTALL")
-                            .positiveText("DOWNLOAD")
-                            .negativeText("CANCEL")
-                            .onPositive((dialog, which) -> {
-                                SpotsDialog.Builder builder = new SpotsDialog.Builder();
-                                builder.setContext(mainActivity).setMessage("Updating...").setCancelable(false).build().show();
-                                String apk_url = post.getApkUrl();
-                                String apk_name = post.getApkName();
-                                try {
-                                    UpdateProcedure(apk_url, apk_name, builder);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            })
-                            .show();
+                        .title("Update Available")
+                        .content("Kindly download the newer version and press INSTALL")
+                        .positiveText("DOWNLOAD")
+                        .negativeText("CANCEL")
+                        .onPositive((dialog, which) -> {
+                            SpotsDialog.Builder builder = new SpotsDialog.Builder();
+                            builder.setContext(mainActivity).setMessage("Updating...").setCancelable(false).build().show();
+                            String apk_url = post.getApkUrl();
+                            String apk_name = post.getApkName();
+                            try {
+                                UpdateProcedure(apk_url, apk_name, builder);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        })
+                        .show();
                 } else {
                     new MaterialDialog.Builder(mainActivity)
-                            .title("No update")
-                            .content("This app already using the latest update")
-                            .positiveText("OK")
-                            .show();
+                        .title("No update")
+                        .content("This app already using the latest update")
+                        .positiveText("OK")
+                        .show();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -96,7 +101,6 @@ public class UpdateTask {
 
 
     private void UpdateProcedure(String base_url, String apk_name, SpotsDialog.Builder builder) throws Exception {
-
 
         Log.e(TAG, "checkForUpdates: success");
         Log.e(TAG, "url: " + base_url);

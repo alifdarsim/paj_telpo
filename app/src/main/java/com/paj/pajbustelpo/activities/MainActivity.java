@@ -8,6 +8,8 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.text.InputType;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -44,17 +46,19 @@ public class MainActivity extends AppCompatActivity {
     public CodeScannerView scannerView;
     public UserFlowTracker userFlowTracker;
 
+    public ImageView result_image, connected_bar;
     public TextView text_log;
     public double current_Lat, current_Lng;
-    public CardView scanBackground;
+    public String current_bearing, current_speed, current_time;
+    public CardView scanBackground_idle, scanBackground_result;
     public RelativeLayout footerBackground;
-    public TextView textScan, textScanBelow;
-    public MediaPlayer correctSound, wrongSound;
+    public TextView textScan, textScanBelow1, textScanBelow2, textScanBelow3;
+    public MediaPlayer startingSound, correctSound, wrongSound;
     public String bus_plate;
-    public Button btn_qr_code;
+    public Button btn_qr_code, btn_reset_bus, btn_volume, btn_close_logger, btn_check_update, btn_clear_log;
     RelativeLayout logger_panel, main_panel;
 
-    @SuppressLint("HandlerLeak")
+    @SuppressLint({"HandlerLeak", "DefaultLocale"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,15 +75,19 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //Get extras from previous activity
-        Bundle extras = getIntent().getExtras();
-        bus_plate = extras.getString("bus_plate");
+        SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", MODE_PRIVATE);
+        bus_plate = pref.getString("bus_plate", "UTM9999");
 
         //Init database sqlite, Logger
         db = new DatabaseHelper(this);
         logger = new LoggerHelper(this);
 
+        //insert into activated table
+        db.insertActivated();
+
         //init startup script
         initUI();
+        startingSound.start();
 
         //Location services always run in different thread, so no need to create new threading here
         LocationTask location = new LocationTask(this, db);
@@ -89,6 +97,9 @@ public class MainActivity extends AppCompatActivity {
             //but in fused location scenario this value is acceptable
             current_Lat = latitude;
             current_Lng = longitude;
+            current_speed = String.format("%.0f", speed);
+            current_bearing = String.format("%.0f", bearing);
+            current_time = Helper.getDateTimeString();
         });
 
         //Reading unsend data from database every 10 second
@@ -103,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
         //Init the QR object
         codeScanner = new QrScanner(this, scannerView);
         codeScanner.init();
+        scannerView.setVisibility(View.GONE);
         codeScanner.toggle();
 
         //Init the user flow tracker
@@ -111,31 +123,26 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressLint("SetTextI18n")
     private void initUI() {
+        result_image = findViewById(R.id.result_image);
+        connected_bar = findViewById(R.id.connected_bar);
         correctSound = MediaPlayer.create(this, R.raw.correct);
         wrongSound = MediaPlayer.create(this, R.raw.wrong);
+        startingSound = MediaPlayer.create(this, R.raw.tingtingting);
         scannerView = findViewById(R.id.scanner_view);
 
         text_log = findViewById(R.id.text_logger);
         text_log.setMovementMethod(new ScrollingMovementMethod());
 
-        Button btn_clear_log = findViewById(R.id.btn_clear_log);
+        btn_clear_log = findViewById(R.id.btn_clear_log);
         btn_clear_log.setOnClickListener(view -> {
             logger.textSpan = "";
             text_log.setText("");
         });
 
-        Button btn_check_update = findViewById(R.id.btn_check_update);
+        btn_check_update = findViewById(R.id.btn_check_update);
         btn_check_update.setOnClickListener(view -> {
             UpdateTask updateTask = new UpdateTask(MainActivity.this);
             updateTask.checkUpdate();
-        });
-
-        Button btn_close_logger = findViewById(R.id.btn_close_logger);
-        btn_close_logger.setOnClickListener(view -> {
-            main_panel.bringToFront();
-            scannerView.bringToFront();
-            logger.textSpan = "";
-            isLogging = false;
         });
 
         btn_qr_code = findViewById(R.id.btn_qr_code);
@@ -149,20 +156,22 @@ public class MainActivity extends AppCompatActivity {
         logger_panel = findViewById(R.id.logger_panel);
         main_panel = findViewById(R.id.main_panel);
 
-        scanBackground = findViewById(R.id.card_scan_background);
+        scanBackground_idle = findViewById(R.id.card_scan_background_idle);
+        scanBackground_result = findViewById(R.id.card_scan_background_result);
         footerBackground = findViewById(R.id.main_footer);
         textScan = findViewById(R.id.text_scan);
-        textScanBelow = findViewById(R.id.text_scan_footer);
+        textScanBelow1 = findViewById(R.id.text_scan_footer1);
+        textScanBelow2 = findViewById(R.id.text_scan_footer2);
+        textScanBelow3 = findViewById(R.id.text_scan_footer3);
         textScan.setText("SILA IMBAS\nMYKAD ANDA");
-        textScanBelow.setVisibility(View.GONE);
 
-        Button btn_volume = findViewById(R.id.btn_volume);
+        btn_volume = findViewById(R.id.btn_volume);
         btn_volume.setOnClickListener(view -> {
             AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
             audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_SAME, AudioManager.FLAG_SHOW_UI);
         });
 
-        Button btn_reset_bus = findViewById(R.id.btn_reset_bus);
+        btn_reset_bus = findViewById(R.id.btn_reset_bus);
         btn_reset_bus.setOnClickListener(view -> {
 
             // Inside your method, when you want to show the dialog
@@ -204,16 +213,27 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-
         TextView bus_plate_txt = findViewById(R.id.text_bus);
         bus_plate_txt.setText(bus_plate);
 
         ImageView paj_logo = findViewById(R.id.paj_logo);
-        paj_logo.setOnClickListener(view -> {
+        paj_logo.setOnLongClickListener(view -> {
             logger_panel.bringToFront();
+            logger_panel.setVisibility(View.VISIBLE);
             isLogging = true;
+            return true;
         });
 
+        btn_close_logger = findViewById(R.id.btn_close_logger);
+        btn_close_logger.setOnClickListener(view -> {
+            main_panel.bringToFront();
+            scannerView.bringToFront();
+            logger_panel.setVisibility(View.GONE);
+            logger.textSpan = "";
+            isLogging = false;
+        });
+
+        logger_panel.setVisibility(View.GONE);
     }
 
 }

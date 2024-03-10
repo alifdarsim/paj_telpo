@@ -23,6 +23,7 @@ public class Helper {
                         | View.SYSTEM_UI_FLAG_IMMERSIVE
                         | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+
     }
 
     public static String epochToDate(long epoch) {
@@ -80,6 +81,19 @@ public class Helper {
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date();
         return dateFormat.format(date);
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    public static long convertToEpoch(String datetimeString) {
+        try {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Date date = dateFormat.parse(datetimeString);
+            assert date != null;
+            return date.getTime();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0; // or any appropriate default value indicating an error
+        }
     }
 
     public static double msToKmh(double ms) {

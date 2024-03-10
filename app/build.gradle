@@ -10,14 +10,15 @@ android {
         minSdk 24
         //noinspection ExpiredTargetSdkVersion
         targetSdk 24
-        versionCode 4
-        versionName "1.4.0"
+        versionCode 7
+        versionName "1.7.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
